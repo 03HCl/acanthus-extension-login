@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>AcanthusReplicater - Login</title>
+    <script src="./src/jquery-3.2.1.min.js"></script>
+    <script src="./src/cryptico.browser.min.js"></script>
+    <script src="./src/mt.js"></script>
+    <script>
+    <!--
+        $(function () {
+            arg = new Object;
+            var param = location.search.substring(1).split('&');
+            for (var i = 0; param[i]; i++) {
+                var p = param[i].split('=');
+                arg[p[0]] = p[1];
+            }
+
+            if ('modulus' in arg) { $('#message').text(''); }
+            else { $('#message').text('実行できません。公開鍵を指定してください。'); }
+
+            if ('redirect_url' in arg) { $('form').attr("action", decodeURIComponent(arg['redirect_url'])); }
+            else { $('form').attr("action", './test_result.html'); }
+            //$('#login_form').attr("action", './test_result.html');
+
+            $('#pswd-toggle').on('change', function () {
+                if ($(this).prop('checked')) {
+                    $("#pswd").hide();
+                    $("#pswd-text").val($("#pswd").val());
+                    $("#pswd").val()
+                    $("#pswd-text").show();
+                } else {
+                    $("#pswd-text").hide();
+                    $("#pswd").val($("#pswd-text").val());
+                    $("#pswd-text").val()
+                    $("#pswd").show();
+                }
+            });
+
+            $('#login').click(function () {
+                if (!('modulus' in arg)) { return false; }
+
+                var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJLKMNOPQRSTUVWXYZ0123456789';
+                var mt = new MersenneTwister();
+                var salt = "";
+                for (var i = 0; i < 24; i++) {
+                    salt += chars.charAt(mt.nextInt(chars.length));
+                }
+
+                var queryString = '?id=';
+                if ($('#pswd-toggle').prop('checked')) { queryString += encodeURIComponent($('#pswd-text').val()); }
+                else { queryString += encodeURIComponent($('#pswd').val()); }
+                queryString += '&password=' + encodeURIComponent($('#j_password').val());
+                queryString += '&salt=' + salt;
+
+                var encrypted = cryptico.encrypt(queryString, decodeURIComponent(arg['modulus']));
+                $('#query').val(encodeURIComponent(encrypted.cipher));
+                //$('#query').val(encodeURIComponent(cryptico.encrypt(queryString, decodeURIComponent(arg['modulus'])).cipher));
+                //var decrypted = crypto.decrypt(encrypted, "");
+
+                $('#login_form').submit();
+            });
+        });
+
+    //-->
+    </script>
+
+</head>
+
+<body>
+
+    <h1>AcanthusReplicater(名称仮) ログインページ</h1>
+
+    <input type="checkbox" id="pswd-toggle"> 金沢大学IDの入力を隠す(Hide ID)
+
+    <table>
+        <tr>
+            <th> 金沢大学ID <br /> (KanazawaUniversityID) </th>
+            <td>
+                <input id="pswd" type="text" />
+                <input id="pswd-text" type="password" style="display: none;" />
+            </td>
+        </tr>
+        <tr>
+            <th> パスワード <br /> (Password) </th>
+            <td><input id="j_password" type="password" /></td>
+        </tr>
+    </table>
+
+    <!--<input id="salt" name="salt" type="hidden" value="" />-->
+    
+    <form method="get" id="login_form">
+        <input id="query" name="query" type="hidden" />
+        <button id="login" type="button">ログイン</button>
+    </form>
+
+    <p id="message" style="color: #ff0000">実行できません。javascript を有効化してください。</p>
+
+</body>
+
+</html>
