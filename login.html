@@ -37,7 +37,7 @@
             else { $('#message').text('実行できません。公開鍵を指定してください。'); }
 
             if ('redirect_url' in arg) { $('form').attr("action", decodeURIComponent(arg['redirect_url'])); }
-            else { $('form').attr("action", './test_result.html'); }
+            else { $('#message').text('実行できません。リダイレクトするURLを指定してください。'); }
             //$('#login_form').attr("action", './test_result.html');
 
             $('#pswd-toggle').on('change', function () {
@@ -58,7 +58,7 @@
 
             $('#login').click(function () {
 
-                if (!('modulus' in arg)) { return false; }
+                if (!(('modulus' in arg) && ('exponent' in arg) && ('redirect_url' in arg))) { return false; }
 
                 var query = '?id=';
                 if ($('#pswd-toggle').prop('checked')) { query += encodeURIComponent($('#pswd-text').val()); }
