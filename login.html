@@ -1,23 +1,39 @@
 ﻿<!DOCTYPE html>
 
 <html>
+
 <head>
+
     <meta charset="utf-8" />
-    <title>AcanthusReplicater - Login</title>
-    <script src="./src/jquery-3.2.1.min.js"></script>
-    <script src="./src/cryptico.browser.min.js"></script>
-    <script src="./src/mt.js"></script>
+
+    <title>Acanthus Extension - Login</title>
+
+    <script type="text/javascript" src="./src/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="./src/mt.js"></script>
+    <script type="text/javascript" src="./src/jsbn.js"></script>
+    <script type="text/javascript" src="./src/prng4.js"></script>
+    <script type="text/javascript" src="./src/rng.js"></script>
+    <script type="text/javascript" src="./src/rsa.js"></script>
+    <script type="text/javascript" src="./src/base64.js"></script>
+    <script type="text/javascript" src="./src/sjcl.js"></script>
+    <script type="text/javascript" src="./src/cbc.js"></script>
+    <script type="text/javascript" src="./src/bitArray.js"></script>
+    <script type="text/javascript" src="./src/codecBytes.js"></script>
+
     <script>
     <!--
+
         $(function () {
+
             arg = new Object;
             var param = location.search.substring(1).split('&');
+
             for (var i = 0; param[i]; i++) {
                 var p = param[i].split('=');
                 arg[p[0]] = p[1];
             }
 
-            if ('modulus' in arg) { $('#message').text(''); }
+            if (('modulus' in arg) && ('exponent' in arg)) { $('#message').text(''); }
             else { $('#message').text('実行できません。公開鍵を指定してください。'); }
 
             if ('redirect_url' in arg) { $('form').attr("action", decodeURIComponent(arg['redirect_url'])); }
@@ -25,6 +41,7 @@
             //$('#login_form').attr("action", './test_result.html');
 
             $('#pswd-toggle').on('change', function () {
+
                 if ($(this).prop('checked')) {
                     $("#pswd").hide();
                     $("#pswd-text").val($("#pswd").val());
@@ -36,32 +53,61 @@
                     $("#pswd-text").val()
                     $("#pswd").show();
                 }
+
             });
 
             $('#login').click(function () {
+
                 if (!('modulus' in arg)) { return false; }
 
-                var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJLKMNOPQRSTUVWXYZ0123456789';
-                var mt = new MersenneTwister();
-                var salt = "";
-                for (var i = 0; i < 24; i++) {
-                    salt += chars.charAt(mt.nextInt(chars.length));
-                }
+                var query = '?id=';
+                if ($('#pswd-toggle').prop('checked')) { query += encodeURIComponent($('#pswd-text').val()); }
+                else { query += encodeURIComponent($('#pswd').val()); }
+                query += '&password=' + encodeURIComponent($('#j_password').val());
+                query += '&salt=' + getRandomAlphanumericString(24);
 
-                var queryString = '?id=';
-                if ($('#pswd-toggle').prop('checked')) { queryString += encodeURIComponent($('#pswd-text').val()); }
-                else { queryString += encodeURIComponent($('#pswd').val()); }
-                queryString += '&password=' + encodeURIComponent($('#j_password').val());
-                queryString += '&salt=' + salt;
+                var key = getRandomByteArray(16);
+                var key_bit = sjcl.codec.bytes.toBits(key);
+                var key_base64 = sjcl.codec.base64.fromBits(key_bit);
 
-                var encrypted = cryptico.encrypt(queryString, decodeURIComponent(arg['modulus']));
-                $('#query').val(encodeURIComponent(encrypted.cipher));
-                //$('#query').val(encodeURIComponent(cryptico.encrypt(queryString, decodeURIComponent(arg['modulus'])).cipher));
-                //var decrypted = crypto.decrypt(encrypted, "");
+                var iv = getRandomByteArray(16);
+                var iv_bit = sjcl.codec.bytes.toBits(iv);
+                var iv_base64 = sjcl.codec.base64.fromBits(iv_bit);
+
+                var aes = new sjcl.cipher.aes(key_bit);
+                sjcl.beware["CBC mode is dangerous because it doesn't protect message integrity."]();
+                $('#q').val(replaceBase64(sjcl.codec.base64.fromBits(sjcl.mode["cbc"].encrypt(aes, sjcl.codec.utf8String.toBits(query), iv_bit))));
+                //var encrypted = sjcl.mode["cbc"].encrypt(aes, sjcl.codec.utf8String.toBits(query), iv_bit);
+                //var decrypted = sjcl.codec.utf8String.fromBits(sjcl.mode["cbc"].decrypt(aes, encrypted, iv_bit));
+
+                var rsa = new RSAKey();
+                rsa.setPublic(b64tohex(decodeURIComponent(arg['modulus'])), b64tohex(decodeURIComponent(arg['exponent'])));
+                $('#a').val(replaceBase64(hex2b64(rsa.encrypt(key_base64 + '::::' + iv_base64))));
+                //$('#q1').val(replaceBase64(hex2b64(rsa.encrypt(key_base64))));
+                //$('#q2').val(replaceBase64(hex2b64(rsa.encrypt(iv_base64))));
 
                 $('#login_form').submit();
+
             });
+
         });
+
+        function replaceBase64(str) { return str.replace(/\//g, '_').replace(/\+/g, '-'); }
+
+        function getRandomAlphanumericString(length) {
+            var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJLKMNOPQRSTUVWXYZ0123456789';
+            var mt = new MersenneTwister();
+            var result = "";
+            for (var i = 0; i < length; i++) { result += chars.charAt(mt.nextInt(chars.length)); }
+            return result;
+        }
+
+        function getRandomByteArray(length) {
+            var mt = new MersenneTwister();
+            var result = [];
+            for (var i = 0; i < length; i++) { result.push(mt.nextInt(256)); }
+            return result;
+        }
 
     //-->
     </script>
@@ -70,9 +116,9 @@
 
 <body>
 
-    <h1>AcanthusReplicater(名称仮) ログインページ</h1>
+    <h1>Acanthus Extension(名称仮) ログインページ</h1>
 
-    <input type="checkbox" id="pswd-toggle"> 金沢大学IDの入力を隠す(Hide ID)
+    <input id="pswd-toggle" type="checkbox"> 金沢大学IDの入力を隠す(Hide ID)
 
     <table>
         <tr>
@@ -88,10 +134,9 @@
         </tr>
     </table>
 
-    <!--<input id="salt" name="salt" type="hidden" value="" />-->
-    
-    <form method="get" id="login_form">
-        <input id="query" name="query" type="hidden" />
+    <form id="login_form" method="get">
+        <input id="a" name="a" type="hidden" />
+        <input id="q" name="q" type="hidden" />
         <button id="login" type="button">ログイン</button>
     </form>
 
