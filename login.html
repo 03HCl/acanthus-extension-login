@@ -77,14 +77,10 @@
                 var aes = new sjcl.cipher.aes(key_bit);
                 sjcl.beware["CBC mode is dangerous because it doesn't protect message integrity."]();
                 $('#q').val(replaceBase64(sjcl.codec.base64.fromBits(sjcl.mode["cbc"].encrypt(aes, sjcl.codec.utf8String.toBits(query), iv_bit))));
-                //var encrypted = sjcl.mode["cbc"].encrypt(aes, sjcl.codec.utf8String.toBits(query), iv_bit);
-                //var decrypted = sjcl.codec.utf8String.fromBits(sjcl.mode["cbc"].decrypt(aes, encrypted, iv_bit));
 
                 var rsa = new RSAKey();
                 rsa.setPublic(b64tohex(decodeURIComponent(arg['modulus'])), b64tohex(decodeURIComponent(arg['exponent'])));
                 $('#a').val(replaceBase64(hex2b64(rsa.encrypt(key_base64 + '::::' + iv_base64))));
-                //$('#q1').val(replaceBase64(hex2b64(rsa.encrypt(key_base64))));
-                //$('#q2').val(replaceBase64(hex2b64(rsa.encrypt(iv_base64))));
 
                 $('#login_form').submit();
 
@@ -116,31 +112,42 @@
 
 <body>
 
-    <h1>Acanthus Extension(名称仮) ログインページ</h1>
+    <h1>Acanthus Extension (名称仮) ログインページ</h1>
 
-    <input id="pswd-toggle" type="checkbox"> 金沢大学IDの入力を隠す(Hide ID)
+    <div style="margin: 30px">
 
-    <table>
-        <tr>
-            <th> 金沢大学ID <br /> (KanazawaUniversityID) </th>
-            <td>
-                <input id="pswd" type="text" />
-                <input id="pswd-text" type="password" style="display: none;" />
-            </td>
-        </tr>
-        <tr>
-            <th> パスワード <br /> (Password) </th>
-            <td><input id="j_password" type="password" /></td>
-        </tr>
-    </table>
+        <input id="pswd-toggle" type="checkbox"> 金沢大学IDの入力を隠す(Hide ID)
 
-    <form id="login_form" method="get">
-        <input id="a" name="a" type="hidden" />
-        <input id="q" name="q" type="hidden" />
-        <button id="login" type="button">ログイン</button>
-    </form>
+        <table>
+            <tr>
+                <th> 金沢大学ID <br /> (KanazawaUniversityID) </th>
+                <td>
+                    <input id="pswd" type="text" />
+                    <input id="pswd-text" type="password" style="display: none;" />
+                </td>
+            </tr>
+            <tr>
+                <th> パスワード <br /> (Password) </th>
+                <td><input id="j_password" type="password" /></td>
+            </tr>
+        </table>
 
-    <p id="message" style="color: #ff0000">実行できません。javascript を有効化してください。</p>
+        <form id="login_form" method="get">
+            <input id="a" name="a" type="hidden" />
+            <input id="q" name="q" type="hidden" />
+            <button id="login" type="button">ログイン</button>
+        </form>
+
+        <p id="message" style="color: #ff0000">実行できません。javascript を有効化してください。</p>
+    
+    </div>
+
+    <footer>
+
+        <p> Created by <a href="https://twitter.com/03hcl">03(@03hcl)</a> </p>
+        <p> (C) 2017 03HCl </p>
+
+    </footer>
 
 </body>
 
